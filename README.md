@@ -13,8 +13,8 @@ Spring Boot and Spring AI.
 [![Spring AI](https://img.shields.io/badge/Spring%20AI-2.0-6DB33F.svg)](https://spring.io/projects/spring-ai)
 [![Oracle JDBC](https://img.shields.io/badge/Oracle%20JDBC-23-red.svg)](https://www.oracle.com/database/)
 [![MCP](https://img.shields.io/badge/MCP-STDIO-blue.svg)](https://modelcontextprotocol.io)
-[![last commit](https://img.shields.io/github/last-commit/zademy/mcp-oracle-db)](https://github.com/zademy/mcp-oracle-db/commits/main)
-[![stars](https://img.shields.io/github/stars/zademy/mcp-oracle-db?style=social)](https://github.com/zademy/mcp-oracle-db/stargazers)
+[![last commit](https://img.shields.io/github/last-commit/zademy/mcp-oracle-database)](https://github.com/zademy/mcp-oracle-database/commits/main)
+[![stars](https://img.shields.io/github/stars/zademy/mcp-oracle-database?style=social)](https://github.com/zademy/mcp-oracle-database/stargazers)
 
 Let any MCP-compatible client (Claude Desktop, Cursor, Cline, Continue, VS Code,
 Windsurf, …) **introspect** an Oracle schema and **run SQL** — safely.

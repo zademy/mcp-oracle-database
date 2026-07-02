@@ -14,7 +14,7 @@ construido con Spring Boot y Spring AI.
 [![Oracle JDBC](https://img.shields.io/badge/Oracle%20JDBC-23-red.svg)](https://www.oracle.com/database/)
 [![MCP](https://img.shields.io/badge/MCP-STDIO-blue.svg)](https://modelcontextprotocol.io)
 [![last commit](https://img.shields.io/github/last-commit/zademy/mcp-oracle-db)](https://github.com/zademy/mcp-oracle-db/commits/main)
-[![stars](https://img.shields.io/github/stars/zademy/mcp-oracle-db?style=social)](https://github.com/zademy/mcp-oracle-db/stargazers)
+[![stars](https://img.shields.io/github/stars/zademy/mcp-oracle-database?style=social)](https://github.com/zademy/mcp-oracle-database/stargazers)
 
 Permite que cualquier cliente compatible con MCP (Claude Desktop, Cursor, Cline,
 Continue, VS Code, Windsurf, …) **introspecte** un esquema de Oracle y **ejecute
