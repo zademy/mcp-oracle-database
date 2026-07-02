@@ -1,0 +1,48 @@
+# ==========================================================================
+# End-to-end MCP test configuration (Tier-2).
+# ==========================================================================
+#
+# This is a TEMPLATE. To run the e2e test:
+#
+#   1. Copy this file to application-e2e.yaml (same directory):
+#        copy application-e2e.example.yaml application-e2e.yaml
+#   2. Fill in your real Oracle credentials, schema, and tables below.
+#   3. Ensure the server jar is built:
+#        build.bat package -DskipTests
+#   4. Run the e2e suite:
+#        run-e2e.bat
+#
+# The real application-e2e.yaml is gitignored — credentials are never
+# committed. When the file is absent the e2e test is silently skipped
+# (via JUnit Assumptions), so the default `mvn test` stays green.
+# ==========================================================================
+e2e:
+
+  # Absolute or relative path to the server jar to launch as a STDIO
+  # subprocess. Relative paths resolve from the project root (the Maven
+  # working directory). Examples:
+  #   target/mcp-oracle-db-0.0.1-SNAPSHOT.jar   (just built)
+  #   C:\mcp\mcp-oracle-db-0.0.1-SNAPSHOT.jar   (deployed copy)
+  jar: target/mcp-oracle-db-0.0.1-SNAPSHOT.jar
+
+  # Java executable used to launch the server subprocess. Use "java" if
+  # it is on PATH, or give the full path to the JDK bin directory.
+  java: java
+
+  # Oracle connection credentials — the same env vars the deployed server
+  # reads at startup (ORACLE_DB_URL / USERNAME / PASSWORD).
+  oracle:
+    url: jdbc:oracle:thin:@//host:1521/SERVICE
+    username: YOUR_USER
+    password: YOUR_PASSWORD
+
+  # Schema (Oracle owner) to introspect. All table operations in the test
+  # are scoped to this schema.
+  schema: YOUR_SCHEMA
+
+  # Tables to exercise with SELECT-only operations (describe_table,
+  # run_query SELECT ... WHERE ROWNUM <= 5, count_rows). Add as many as
+  # you like — the test loops over every entry.
+  tables:
+    - YOUR_TABLE_1
+    - YOUR_TABLE_2

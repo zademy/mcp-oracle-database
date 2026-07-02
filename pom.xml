@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.1.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.zademy</groupId>
+	<artifactId>mcp-oracle-db</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>mcp-oracle-db</name>
+	<description>MCP server for Oracle Database, built with Spring Boot and Spring AI.</description>
+	<url>https://github.com/zademy/mcp-oracle-db</url>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Sadot Hdz</name>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git://github.com/zademy/mcp-oracle-db.git</connection>
+		<developerConnection>scm:git:git@github.com:zademy/mcp-oracle-db.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/zademy/mcp-oracle-db</url>
+	</scm>
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/zademy/mcp-oracle-db</url>
+		</repository>
+	</distributionManagement>
+	<properties>
+		<java.version>26</java.version>
+		<spring-ai.version>2.0.0</spring-ai.version>
+		<ojdbc.version>23.26.2.0.0</ojdbc.version>
+		<jsqlparser.version>4.9</jsqlparser.version>
+		<sentry.version>8.16.0</sentry.version>
+	</properties>
+	<dependencies>
+		<!-- MCP server (STDIO transport) -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-mcp-server</artifactId>
+		</dependency>
+
+		<!-- Database access: DataSource, HikariCP, JdbcTemplate -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+		</dependency>
+
+		<!-- Oracle JDBC driver -->
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc17</artifactId>
+
+		</dependency>
+
+		<!-- SQL parsing for the security guard (statement classification) -->
+		<dependency>
+			<groupId>com.github.jsqlparser</groupId>
+			<artifactId>jsqlparser</artifactId>
+			<version>${jsqlparser.version}</version>
+		</dependency>
+
+		<!-- JSON parsing for structured tool arguments (call_procedure args array).
+		     Version managed by the Spring Boot BOM; JacksonAutoConfiguration
+		     provides the ObjectMapper bean. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- AOP: enables @Aspect/@AfterThrowing for cross-cutting concerns (Sentry capture).
+		     Renamed in Spring Boot 4.x from spring-boot-starter-aop to spring-boot-starter-aspectj. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aspectj</artifactId>
+		</dependency>
+
+		<!-- Sentry core SDK (init manually in SentryConfig; avoids Spring Boot 4 starter incompatibility) -->
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry</artifactId>
+			<version>${sentry.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- In-memory database for the non-env-gated smoke test (Tier-1): lets the full
+		     Spring context boot WITHOUT a real Oracle instance. Oracle-compatibility
+		     mode makes Hikari's connection-test-query ("SELECT 1 FROM DUAL") pass. -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>${spring-ai.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- Centralized Oracle JDBC versions -->
+			<dependency>
+				<groupId>com.oracle.database.jdbc</groupId>
+				<artifactId>ojdbc-bom</artifactId>
+				<version>${ojdbc.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.projectlombok</groupId>
+									<artifactId>lombok</artifactId>
+								</path>
+							</annotationProcessorPaths>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+	<!--
+	     E2E profile: activates ONLY the STDIO end-to-end test (McpStdioE2ETest)
+	     against a real Oracle instance. Two things happen when this profile is
+	     active:
+	       1. The system property mcp.e2e.enabled=true flips the
+	          @EnabledIfSystemProperty gate so JUnit instantiates the test class
+	          (without the property the class stays disabled and the MCP client
+	          SDK / Reactor thread pools are never loaded — keeping mvn test fast).
+	       2. Surefire restricts the run to just the e2e class.
+	     Requires src/test/resources/application-e2e.yaml (copy
+	     application-e2e.example.yaml and fill in credentials). When the file is
+	     absent the test is skipped via JUnit Assumptions even under this profile.
+	     Usage:
+	               run-e2e.bat
+	       or:    mvn test -Pmcp-e2e
+	-->
+	<profiles>
+		<profile>
+			<id>mcp-e2e</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<mcp.e2e.enabled>true</mcp.e2e.enabled>
+							</systemPropertyVariables>
+							<includes>
+								<include>**/McpStdioE2ETest.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

@@ -1,0 +1,115 @@
+spring:
+  application:
+    name: mcp-oracle-db
+  # STDOUT is the JSON-RPC channel for the MCP STDIO transport; the default
+  # banner prints to System.out and corrupts framing. Keep it off.
+  main:
+    banner-mode: off
+  # Java 26 virtual threads: great fit for blocking JDBC workloads
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${ORACLE_DB_URL}
+    username: ${ORACLE_DB_USERNAME}
+    password: ${ORACLE_DB_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      pool-name: mcp-oracle-pool
+      maximum-pool-size: ${ORACLE_POOL_SIZE:7}
+      minimum-idle: 1
+      connection-timeout: 20000
+      validation-timeout: 5000
+      idle-timeout: 600000
+      keepalive-time: 120000
+      max-lifetime: 1740000
+      leak-detection-threshold: 60000
+      connection-test-query: SELECT 1 FROM DUAL
+      # Oracle JDBC transport timeouts — the primary defence against pool
+      # exhaustion. Without a socket readTimeout, a connection whose Oracle
+      # session died (ORA-03113/03114, network stall, DB profile IDLE_TIME) hangs
+      # indefinitely on the JDBC socket read; JdbcTemplate's finally never runs,
+      # the connection is never returned, and with pool=5 a few zombies exhaust
+      # it so the MCP can no longer reach the DB. readTimeout (130s) sits between
+      # query-timeout (120s) and the MCP request-timeout (150s): legitimate slow
+      # queries trip the statement timeout (ORA-01013) first; only truly dead
+      # sockets hit the readTimeout. max-lifetime (29 min) is kept just under the
+      # typical Oracle IDLE_TIME (30 min) so Hikari recycles before Oracle kills.
+      data-source-properties:
+        "oracle.jdbc.connectTimeout": 10000
+        "oracle.jdbc.readTimeout": 130000
+        "oracle.net.CONNECT_TIMEOUT": 10000
+        "oracle.net.READ_TIMEOUT": 130000
+  ai:
+    mcp:
+      server:
+        enabled: true
+        name: mcp-oracle-db
+        version: ${MCP_SERVER_VERSION:0.0.1-SNAPSHOT}
+        stdio: true
+        type: SYNC
+        request-timeout: 150s
+        expose-mcp-client-tools: false
+        capabilities:
+          tool: true
+          resource: true
+          prompt: true
+          completion: true
+        resource-change-notification: true
+        prompt-change-notification: true
+        tool-change-notification: false
+        instructions: >
+          Oracle Database MCP server for safe Oracle administration. Help the client
+          inspect, understand, diagnose, and operate the database as much as possible
+          without destructive or structural changes. Prefer read-only actions:
+          schemas, tables, views, columns, indexes, constraints, sequences, PL/SQL
+          objects, DDL source, samples, row counts, explain plans, performance
+          diagnostics, sessions, locks, waits, top SQL, statistics, and advisory
+          reports. Before any write operation, explain the risk and require an
+          explicit user request. INSERT, UPDATE, DELETE, and MERGE are allowed for
+          table rows only; DELETE must be treated as row deletion, not object
+          deletion. Do not recommend or attempt ALTER, DROP, TRUNCATE, RENAME, GRANT,
+          REVOKE, PURGE, FLASHBACK, AUDIT, NOAUDIT, LOCK TABLE, ANALYZE, or
+          CREATE-style structural changes from general guidance. If a requested
+          action is blocked by least-privilege database grants,
+          return the reason and suggest the safest read-only alternative. Accept one
+          SQL statement per tool call only; reject multi-statement input. Calling
+          discipline: the database pool is small (7 connections by default), so do not call
+          test_connection, oracle_mcp_health_report, get_session_privs, or
+          get_session_roles as a preamble; call them only when the user explicitly
+          asks about connectivity, health, privileges, or roles. For a request
+          about a table, go straight to describe_table, get_ddl, list_indexes, or
+          run_query. Stay in scope: never probe the current user's ADMIN status, IP,
+          hostname, or terminal unless explicitly asked. These rules are also
+          available as the operating-rules prompt. Oracle SQL authoring rules (prevents ORA-00923/00936/00904/00911/00933): send one statement per call with no trailing semicolon; quote identifiers with double quotes and string literals with single quotes (never backticks or brackets); alias columns with AS and never use a reserved word as a bare alias (DATE, NUMBER, LEVEL, SIZE, COMMENT, USER, ROWID, ROWNUM); separate every SELECT-list column with a comma; paginate with FETCH FIRST n ROWS ONLY or OFFSET n ROWS FETCH NEXT m ROWS ONLY, never LIMIT; Oracle folds unquoted identifiers to UPPERCASE, so double-quote mixed-case names; call describe_table first when unsure of a column name. The full ruleset is available as the oracle-sql-style prompt.
+
+# Application-specific tuning
+oracle:
+  mcp:
+    max-rows: 1000
+    query-timeout-seconds: 120
+    default-sample-rows: 10
+    # Per-session SQL audit log (one .txt per MCP session, appended on every SQL
+    # that reaches Oracle). Opt-in: set MCP_AUDIT_ENABLED=true to activate.
+    # Files contain SQL text (including literals) — protect the directory.
+    audit:
+      enabled: ${MCP_AUDIT_ENABLED:false}
+      dir: ${MCP_AUDIT_DIR:./mcp-audit-logs}
+
+# Sentry error monitoring. DSN is safe to commit (public ingest key, client-side).
+# auth-token is read by sentry-maven-plugin at build time to upload source
+# bundles (for source context in Sentry stack traces). Override via SENTRY_AUTH_TOKEN
+# env var. Do NOT hardcode the real token value here.
+sentry:
+  dsn: ${SENTRY_DSN:https://host-dsn}
+  auth-token: ${SENTRY_AUTH_TOKEN:sntrys_TOKEN}
+  environment: ${SENTRY_ENV:local}
+  release: ${SENTRY_RELEASE:0.0.1-SNAPSHOT}
+  # Add data like request headers and IP for users,
+  # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
+  send-default-pii: true
+
+logging:
+  level:
+    root: ${LOG_LEVEL:WARN}
+    com.zademy.mcp.oracle.db: ${APP_LOG_LEVEL:INFO}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logging for the MCP STDIO server.
+
+  CRITICAL: stdout (System.out) is the JSON-RPC channel used by Spring AI's
+  MCP STDIO transport. Any byte written to stdout that is not a valid
+  JSON-RPC message corrupts the protocol stream: the client cannot frame a
+  response, tool calls appear to time out, and the client eventually closes
+  the transport ("write |1: The pipe is being closed"). Therefore ALL log
+  output is routed to System.err. Never add a ConsoleAppender that targets
+  System.out.
+-->
+<configuration>
+
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+	<!-- Levels mirror application.yaml (logging.level.*) but are overridable
+	     via the same env vars so ops can tune verbosity without editing XML. -->
+	<springProperty name="ROOT_LEVEL" source="logging.level.root" defaultValue="WARN"/>
+	<springProperty name="APP_LEVEL" source="logging.level.com.zademy.mcp.oracle.db" defaultValue="INFO"/>
+
+	<appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+		<target>System.err</target>
+		<encoder>
+			<!-- Literal pattern, NOT ${CONSOLE_LOG_PATTERN}. Some MCP clients pass
+			     -Dlogging.pattern.console= (empty) to keep stdout clean; Spring
+			     Boot then sets CONSOLE_LOG_PATTERN to "", Logback rejects an empty
+			     pattern, and the whole context fails to start
+			     (IllegalStateException: "Empty or null pattern"). A self-contained
+			     literal is immune to that and keeps stdout clean via the System.err
+			     target above. -->
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+			<charset>UTF-8</charset>
+		</encoder>
+	</appender>
+
+	<logger name="com.zademy.mcp.oracle.db" level="${APP_LEVEL}"/>
+
+	<root level="${ROOT_LEVEL}">
+		<appender-ref ref="STDERR"/>
+	</root>
+
+</configuration>
