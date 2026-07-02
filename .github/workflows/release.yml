@@ -32,7 +32,7 @@ jobs:
           N=$(($(git tag -l "$D.*" | wc -l)+1))
           echo "TAG=$D.$N" >> $GITHUB_ENV
       - name: Set Maven version + deploy to GitHub Packages
-        run: mvn -B -ntp versions:set -DnewVersion=$TAG -DgenerateBackupPoms=false deploy -DskipTests
+        run: mvn -B -ntp versions:set -DnewVersion=$TAG -DgenerateBackupPoms=false deploy -Dmaven.test.skip=true
       - name: GitHub Release + JAR asset
         uses: softprops/action-gh-release@v2
         with:

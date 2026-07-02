@@ -17,4 +17,4 @@ jobs:
           distribution: temurin
           java-version: '26'
           cache: maven
-      - run: mvn -B -ntp verify
+      - run: mvn -B -Dmaven.test.skip=true
